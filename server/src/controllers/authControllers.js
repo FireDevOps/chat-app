@@ -1,0 +1,134 @@
+const prisma = require('../lib/prisma');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Register a new user
+const register = async (req, res) => {
+    try {
+        const { username, email, password} = req.body;
+
+        // Check if user already exists
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [{ email }, { username }],
+            },
+        });
+
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create user
+        const user = await prisma.user.create({
+            data: {
+                username,
+                email,
+                password: hashedPassword,               
+            },
+        });
+
+        // Genarate token
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+            expiresIn: '7d',
+        });
+
+        res.status(201).json({ 
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+// Login user
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Find user by email
+        const user = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid credentials' });
+        }
+
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Invalid Credentials' });
+        }
+
+        // Update user status to online
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { isOnline: true},
+        });
+
+        // Generate token
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+            expiresIn: '7d',
+        });
+
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+// Logout user
+const logout = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        // Update user status to offline
+        await prisma.user.update({
+            where: { id: userId },
+            data: { isOnline: false },
+        });
+        res.json({ message: 'User logged out successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+// Get current user
+const getMe = async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.userId },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                avatarUrl: true,
+                isOnline: true,
+            },
+        });
+        res.json(user);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+module.exports = { register, login, logout, getMe };

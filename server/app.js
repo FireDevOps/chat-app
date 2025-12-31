@@ -17,11 +17,15 @@ const io = new Server(server, {
 // Middleware
 app.use(cors());
 app.use(express.json());
+const authRoutes = require('./src/routes/authRoutes');
 
 // Test route
 app.get('/', (req, res) => {
     res.json({ message: 'Chat API is running' });
 });
+
+// Routes
+app.use('/api/auth', authRoutes);
 
 // Socket.io connection
 io.on('connection', (socket) => {
