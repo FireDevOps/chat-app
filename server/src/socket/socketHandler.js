@@ -80,6 +80,13 @@ const socketHandler = (io) => {
             });
         });
 
+        socket.on('typing-stop', (conversationId) => {
+            socket.to(conversationId).emit('user-stop-typing', {
+                userId: socket.userId,
+                conversationId,
+            });
+        });
+
         // Handle disconnection
         socket.on('disconnect', async () => {
             if (socket.userId) {
