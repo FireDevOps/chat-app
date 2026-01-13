@@ -1,3 +1,5 @@
+import Avatar from "./Avatar";
+
 const Sidebar = ({
     conversations,
     selectedConversation,
@@ -42,9 +44,7 @@ const Sidebar = ({
                                 onClick={() => onStartConversation(user.id)}
                                 className="p-4 hover:bg-gray-200 cursor-pointer flex items-center gap-3"
                             >
-                                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                                    {user.username[0].toUpperCase()}
-                                </div>
+                                <Avatar user={user} size="md" />
                                 <div className="flex-1">
                                     <p className="font-medium dark:text-white">{user.username}</p>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>

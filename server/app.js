@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const chatRoutes = require('./src/routes/chatRoutes');
@@ -20,6 +21,9 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 const authRoutes = require('./src/routes/authRoutes');
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Test route
 app.get('/', (req, res) => {

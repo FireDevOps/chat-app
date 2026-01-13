@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
+import AvatarUpload from '../components/AvatarUpload';
 import api from '../utils/api';
 
 const Chat = () => {
@@ -147,7 +148,14 @@ const Chat = () => {
         <div className='h-screen flex flex-col bg-white dark:bg-gray-900'>
             <header className='bg-blue-500 text-white p-4 flex justify-between items-center'>
                 <h1 className='text-2xl font-bold'>i-ONGEA</h1>
-                <div>
+                <div className='flex items-center gap-4'>
+                    <AvatarUpload 
+                        currentAvatar={user?.avatarUrl}
+                        onAvatarUpdate={(newUrl) => {
+                            // Update user avatar in context would be ideal, but for now just reload
+                            window.location.reload();
+                        }}
+                    />
                     <span>Welcome, {user?.username}</span>
 
                     <button

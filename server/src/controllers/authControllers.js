@@ -131,4 +131,31 @@ const getMe = async (req, res) => {
     }
 };
 
-module.exports = { register, login, logout, getMe };
+// Update user avatar
+const updateAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const avatarUrl = `/uploads/${req.file.filename}`;
+
+        const user = await prisma.user.update({
+            where: { id: req.user.userId },
+            data: { avatarUrl },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                avatarUrl: true,
+            },
+        });
+
+        res.json(user);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+module.exports = { register, login, logout, getMe, updateAvatar };
