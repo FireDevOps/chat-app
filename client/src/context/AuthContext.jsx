@@ -40,7 +40,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Logout function
-    const logout = () => {
+    const logout = async () => {
+        try {
+          await api.post('/auth/logout'); // Inform server about logout
+        } catch (err) {
+          console.error('Failed to logout:', err);    
+        } 
         localStorage.removeItem('token'); // Remove saved token
         setUser(null); // No user is logged in
     };

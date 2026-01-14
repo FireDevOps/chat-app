@@ -1,3 +1,4 @@
+import Avatar from './Avatar';
 import { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
 import api from '../utils/api';
@@ -172,9 +173,10 @@ const ChatWindow = ({ conversation, currentUserId }) => {
         <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
             {/* Chat Header */}
             <div className="p-4 border-b flex items-center gap-3 bg-gray-50 dark:bg-gray-800">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                {/* <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                     {otherUser?.username?.[0]?.toUpperCase() || '?'}
-                </div>
+                </div> */}
+                <Avatar user={otherUser} size="md" />
                 <div>
                     <p className="font-semibold dark:text-white">{otherUser?.username || 'Unknown'}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -201,8 +203,11 @@ const ChatWindow = ({ conversation, currentUserId }) => {
                         return (
                             <div
                                 key={message.id}
-                                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                                className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}
                             >
+                                {/* Message Bubble */}
+                                {!isMe && <Avatar user={otherUser} size='sm' />}
+                                
                                 <div
                                     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                                         isMe
@@ -240,7 +245,7 @@ const ChatWindow = ({ conversation, currentUserId }) => {
                     <div className="flex justify-start">
                         <div className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg">
                             <p className="text-gray-500 dark:text-gray-300 text-sm italic">
-                                {otherUser?.username} is typing...
+                                Typing...
                             </p>
                         </div>
                     </div>

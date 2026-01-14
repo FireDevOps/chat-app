@@ -9,6 +9,7 @@ const Sidebar = ({
     setShowUsers,
     onStartConversation,
     currentUserId,
+    typingUsers,
 }) => {
     // Get the other participant's info from a conversation
     const getOtherUser = (conversation) => {
@@ -75,9 +76,10 @@ const Sidebar = ({
                                 onClick={() => onSelectConversation(conversation)}
                                 className={`p-4 border-b dark:border-gray-700 cursor-pointer flex items-center gap-3 ${isSelected ? 'bg-blue-100' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                             >
-                                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                {/* <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                                     {otherUser?.username?.[0]?.toUpperCase() || '?'}
-                                </div>
+                                </div> */}
+                                <Avatar user={otherUser} size="md" />
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-center">
@@ -89,7 +91,11 @@ const Sidebar = ({
                                         )}
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                        {lastMessage?.content || 'No messages yet.'}
+                                        {typingUsers[conversation.id] ? (
+                                            <span className="text-blue-500 italic animate-pulse">Typing...</span>
+                                        ) : (
+                                            lastMessage?.content || 'No messages yet.'
+                                        )}
                                     </p>
                                 </div>
                             </div>

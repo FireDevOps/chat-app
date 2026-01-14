@@ -17,6 +17,7 @@ const Chat = () => {
     const [showUsers, setShowUsers] = useState(false); // whether to show user list
     const { darkMode, toggleDarkMode } = useTheme(); // dark mode toggle
     const { sendNotification } = useNotification(); // notification hook
+    const [typingUsers, setTypingUsers] = useState({}); // track typing users
 
     // fetch conversations on mount
     useEffect(() => {
@@ -103,6 +104,60 @@ const Chat = () => {
                 }
             }, [socket]);
 
+    // Listen for avatar updates
+            useEffect(() => {
+                if (socket) {
+                    socket.on('user-avatar-updated', (data) => {
+                        const { userId, avatarUrl } = data;
+                        
+                        // Update users list
+                        setUsers((prev) =>
+                            prev.map((u) =>
+                                u.id === userId ? { ...u, avatarUrl } : u
+                            )
+                        );
+                        
+                        // Update conversations list
+                        setConversations((prev) =>
+                            prev.map((conv) => ({
+                                ...conv,
+                                participants: conv.participants.map((p) =>
+                                    p.user.id === userId
+                                        ? { ...p, user: { ...p.user, avatarUrl } }
+                                        : p
+                                ),
+                            }))
+                        );
+                    });
+
+                    return () => {
+                        socket.off('user-avatar-updated');
+                    };
+                }
+            }, [socket]);
+
+    // Listen for typing indicators globally (for sidebar updates)
+    useEffect(() => {
+        if (socket) {
+            socket.on('user-typing', ({ conversationId, userId }) => {
+                setTypingUsers((prev) => ({ ...prev, [conversationId]: userId }));
+            });
+
+            socket.on('user-stop-typing', ({ conversationId }) => {
+                setTypingUsers((prev) => {
+                    const updated = { ...prev };
+                    delete updated[conversationId];
+                    return updated;
+                });
+            });
+
+            return () => {
+                socket.off('user-typing');
+                socket.off('user-stop-typing');
+            };
+        }
+    }, [socket]);
+
 
     // Get all my chats from the server
     const fetchConversations = async () => {
@@ -183,7 +238,8 @@ const Chat = () => {
                     showUsers={showUsers}
                     setShowUsers={setShowUsers}
                     onStartConversation={startConversation}
-                    currentUserId={user?.id}                
+                    currentUserId={user?.id}  
+                    typingUsers={typingUsers}              
                 />
 
                 <ChatWindow 

@@ -21,7 +21,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
             console.error('Failed to upload avatar:', err);
             alert('Failed to upload avatar');
         } finally {
-            setUploading(false);
+        setUploading(false);
         }
     };
 

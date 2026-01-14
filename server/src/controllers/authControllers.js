@@ -42,6 +42,7 @@ const register = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
+                avatarUrl: user.avatarUrl,
             },
         });
     } catch (err) {
@@ -87,6 +88,7 @@ const login = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
+                avatarUrl: user.avatarUrl,
             },
         });
     } catch (err) {
@@ -148,8 +150,16 @@ const updateAvatar = async (req, res) => {
                 username: true,
                 email: true,
                 avatarUrl: true,
+                isOnline: true,
             },
         });
+
+        // Notify all user about avatar update via WebSocket
+        const io = req.app.get('io');
+        io.emit('user-avatar-updated', {
+            userId: user.id,
+            avatarUrl: user.avatarUrl,
+        })
 
         res.json(user);
     } catch (err) {
