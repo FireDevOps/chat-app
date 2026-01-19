@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, getOrCreateChat, getUserChats, getChatMessages, sendMessage, sendFileMessage } = require('../controllers/chatController');
+const { getAllUsers, getOrCreateChat, createGroupChat, leaveGroup, getUserChats, getChatMessages, sendMessage, sendFileMessage } = require('../controllers/chatController');
 const authMiddleware = require('../middleware/auth');
 const { uploadMessageFile } = require('../middleware/upload');
 
@@ -12,6 +12,12 @@ router.get('/users', getAllUsers);
 
 // Get or create one-on-one chat
 router.post('/conversations', getOrCreateChat);
+
+// Create a new group chat
+router.post('/conversations/group', createGroupChat);
+
+// Leave a group chat
+router.delete('/conversations/:conversationId/leave', leaveGroup);
 
 // Get all chats for the authenticated user
 router.get('/conversations', getUserChats);

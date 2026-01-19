@@ -24,39 +24,39 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold text-center mb-6">
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
+                <h1 className="text-2xl font-bold text-center mb-6 dark:text-white">
                     Login to Your Account
                 </h1>
                 { error &&  (
-                    <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+                    <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-3 rounded mb-4">
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-gray-700 mb-2"></label>
+                        <label className="block text-gray-700 dark:text-gray-300 mb-2"></label>
                             Email:
                             <input 
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full p-3 border dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                             placeholder="Enter your email"
                             required
                             />          
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-gray-700 mb-2"></label>
+                        <label className="block text-gray-700 dark:text-gray-300 mb-2"></label>
                             Password:
                             <input 
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full p-3 border dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                             placeholder="Enter your password"
                             required
                             />
@@ -71,7 +71,7 @@ const Login = () => {
                     </button>
                 </form>
 
-                <p className="text-center mt-4 text-gray-600">
+                <p className="text-center mt-4 text-gray-600 dark:text-gray-400">
                     Don't have an account?{' '} <Link to="/register" className="text-blue-500 hover:underline">Register</Link>
                 </p>
             </div>

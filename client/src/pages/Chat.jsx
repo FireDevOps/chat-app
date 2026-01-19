@@ -6,6 +6,7 @@ import { useSocket } from '../context/SocketContext';
 import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import AvatarUpload from '../components/AvatarUpload';
+import CreateGroupModal from '../components/CreateGroupModal';
 import api from '../utils/api';
 
 const Chat = () => {
@@ -18,6 +19,7 @@ const Chat = () => {
     const { darkMode, toggleDarkMode } = useTheme(); // dark mode toggle
     const { sendNotification } = useNotification(); // notification hook
     const [typingUsers, setTypingUsers] = useState({}); // track typing users
+    const [showGroupModal, setShowGroupModal] = useState(false); // group chat modal visibility
 
     // fetch conversations on mount
     useEffect(() => {
@@ -29,14 +31,31 @@ const Chat = () => {
     useEffect(() => {
         if (socket) {
             socket.on('new-message', (message) => {
-                // update conversations with new message
-                setConversations((prev) => 
-                    prev.map((conv) => 
-                        conv.id === message.conversationId 
-                        ? { ...conv, messages: [message] } 
-                        : conv // Leave others unchanged
-                    )
-                );
+                // update conversations with new message and move to top
+                setConversations((prev) => {
+                    const updated = prev.map((conv) => {
+                        if (conv.id === message.conversationId) {
+                            // Increment unread count if message is from another user
+                            // and we're not currently viewing this conversation
+                            const isViewing = selectedConversation?.id === conv.id;
+                            const isFromOther = message.senderId !== user?.id;
+                            return {
+                                ...conv,
+                                messages: [message],
+                                unreadCount: isFromOther && !isViewing 
+                                    ? (conv.unreadCount || 0) + 1 
+                                    : conv.unreadCount,
+                            };
+                        }
+                        return conv;
+                    });
+                    // Sort by latest message timestamp (newest first)
+                    return updated.sort((a, b) => {
+                        const aTime = a.messages?.[0]?.createdAt || a.createdAt;
+                        const bTime = b.messages?.[0]?.createdAt || b.createdAt;
+                        return new Date(bTime) - new Date(aTime);
+                    });
+                });
 
                 // Send browser notification if message is from another user
                 if (message.senderId !== user?.id) {
@@ -163,7 +182,13 @@ const Chat = () => {
     const fetchConversations = async () => {
         try {
             const res = await api.get('/chat/conversations'); // corrected endpoint
-            setConversations(res.data);
+            // Sort by latest message timestamp (newest first)
+            const sorted = res.data.sort((a, b) => {
+                const aTime = a.messages?.[0]?.createdAt || a.createdAt;
+                const bTime = b.messages?.[0]?.createdAt || b.createdAt;
+                return new Date(bTime) - new Date(aTime);
+            });
+            setConversations(sorted);
 
             // Join all conversation rooms to receive real-time updates
             if (socket) {
@@ -197,6 +222,31 @@ const Chat = () => {
             console.error('Failed to start conversation:', err);
         }
     };
+
+    // Create a new group chat
+    const createGroupChat = async (name, participantIds) => {
+        try {
+            const res = await api.post('/chat/conversations/group', { name, participantIds });
+            setSelectedConversation(res.data); // open new group chat
+            setShowGroupModal(false); // close group modal
+            fetchConversations(); // refresh chat list
+        } catch (err) {
+            console.error('Failed to create group chat:', err);
+        }
+    }
+
+                // Leave a group
+            const leaveGroup = async (conversationId) => {
+                if (!confirm('Are you sure you want to leave this group?')) return;
+                
+                try {
+                    await api.delete(`/chat/conversations/${conversationId}/leave`);
+                    setSelectedConversation(null);
+                    fetchConversations(); // Refresh list
+                } catch (err) {
+                    console.error('Failed to leave group:', err);
+                }
+            };
 
     // Render
     return (
@@ -233,19 +283,38 @@ const Chat = () => {
                 <Sidebar 
                     conversations={conversations}
                     selectedConversation={selectedConversation}
-                    onSelectConversation={setSelectedConversation}
+                    onSelectConversation={(conv) => {
+                        setSelectedConversation(conv);
+                        // Clear unread count for this conversation
+                        setConversations((prev) =>
+                            prev.map((c) =>
+                                c.id === conv.id ? { ...c, unreadCount: 0 } : c
+                            )
+                        );
+                    }}
                     users={users}
                     showUsers={showUsers}
                     setShowUsers={setShowUsers}
                     onStartConversation={startConversation}
                     currentUserId={user?.id}  
-                    typingUsers={typingUsers}              
+                    typingUsers={typingUsers} 
+                    onCreateGroup={() => setShowGroupModal(true)}             
                 />
 
                 <ChatWindow 
                     conversation={selectedConversation}
                     currentUserId={user?.id}
+                    onLeaveGroup={() => leaveGroup(selectedConversation?.id)}
                 />
+
+                {/* Group Chat Creation Modal */}
+                {showGroupModal && (
+                    <CreateGroupModal 
+                        users={users}
+                        onCreate={createGroupChat}
+                        onClose={() => setShowGroupModal(false)}
+                    />
+                )}
             </div>
         </div>
     );

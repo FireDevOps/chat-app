@@ -92,13 +92,102 @@ const getOrCreateChat = async (req, res) => {
     }
 };
 
+// create a new group chat
+const createGroupChat = async (req, res) => {
+    try {
+        const { name, participantIds } = req.body;
+        const currentUserId = req.user.userId;
+
+        // Validate input
+        if (!name || !name.trim()) {
+            return res.status(400).json({ error: 'Group name is required' });
+        }
+
+        if (!participantIds || participantIds.length < 2) {
+            return res.status(400).json({ error: 'At least 2 participants are required to create a group chat' });
+        }
+
+        // Include current user in the participants
+        const allParticipantIds = Array.from(new Set([...participantIds, currentUserId]));
+
+        // Create group conversation
+        const groupChat = await prisma.conversation.create({
+            data: {
+                name: name.trim(),
+                isGroup: true,
+                participants: {
+                    create: allParticipantIds.map(userId => ({ userId })),
+                },
+
+            },
+            include: {
+                participants: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                email: true,
+                                avatarUrl: true,
+                                isOnline: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(groupChat);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+// Leave a group chat
+const leaveGroup = async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const userId = req.user.userId;
+
+        // Find the conversation
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: conversationId },
+            include: { participants: true },
+        });
+
+        if (!conversation) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
+
+        if (!conversation.isGroup) {
+            return res.status(400).json({ error: 'Cannot leave a one-on-one chat' });
+        }
+
+        // Remove user from participants
+        await prisma.conversationParticipant.deleteMany({
+            where: {
+                conversationId,
+                userId,
+            },
+        });
+
+        res.json({ message: 'Left the group successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
 // Get user's chats
 const getUserChats = async (req, res) => {
     try {
+        const userId = req.user.userId;
+        
         const conversations = await prisma.conversation.findMany({
             where: {
                 participants: {
-                    some: { userId: req.user.userId } // Get all conversations where I'm a participant
+                    some: { userId } // Get all conversations where I'm a participant
                 },
             },
             include: {
@@ -117,10 +206,27 @@ const getUserChats = async (req, res) => {
                             orderBy: { createdAt: 'desc' },
                             take: 1, // Get only the latest message
                         },
+                _count: {
+                    select: {
+                        messages: {
+                            where: {
+                                isRead: false,
+                                senderId: { not: userId }, // Only count messages from others
+                            },
+                        },
+                    },
+                },
             },
             orderBy: { createdAt: 'desc' },
         });
-        res.json(conversations);
+        
+        // Transform to include unreadCount at top level
+        const conversationsWithUnread = conversations.map(conv => ({
+            ...conv,
+            unreadCount: conv._count.messages,
+        }));
+        
+        res.json(conversationsWithUnread);
     } catch (err) {
        console.error(err);
        res.status(500).json({ error: 'Server error' });
@@ -234,6 +340,8 @@ const sendFileMessage = async (req, res) => {
 module.exports = {
     getAllUsers,
     getOrCreateChat,
+    createGroupChat,
+    leaveGroup,
     getUserChats,
     getChatMessages,
     sendMessage,
