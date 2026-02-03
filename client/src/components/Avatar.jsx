@@ -1,3 +1,5 @@
+import { SERVER_URL } from '../utils/config';
+
 const Avatar = ({ user, size = 'md' }) => {
     const sizeClasses = {
         sm: 'w-8 h-8 text-sm',
@@ -8,7 +10,7 @@ const Avatar = ({ user, size = 'md' }) => {
     if (user?.avatarUrl) {
         return (
             <img
-                src={`http://localhost:5000${user.avatarUrl}`}
+                src={`${SERVER_URL}${user.avatarUrl}`}
                 alt={user.username}
                 className={`${sizeClasses[size]} rounded-full object-cover`}
             />

@@ -8,6 +8,7 @@ import ChatWindow from '../components/ChatWindow';
 import AvatarUpload from '../components/AvatarUpload';
 import CreateGroupModal from '../components/CreateGroupModal';
 import api from '../utils/api';
+import { SERVER_URL } from '../utils/config';
 
 const Chat = () => {
     const { user, logout } = useAuth();
@@ -271,7 +272,7 @@ const Chat = () => {
                         >
                             {user?.avatarUrl ? (
                                 <img 
-                                    src={`http://localhost:5000${user.avatarUrl}`}
+                                    src={`${SERVER_URL}${user.avatarUrl}`}
                                     alt={user.username}
                                     className='w-10 h-10 rounded-full object-cover border-2 border-white'
                                 />

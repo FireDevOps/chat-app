@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../utils/api';
+import { SERVER_URL } from '../utils/config';
 
 const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
     const [uploading, setUploading] = useState(false);
@@ -31,7 +32,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarUpdate }) => {
                 <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold overflow-hidden hover:opacity-80 transition">
                     {currentAvatar ? (
                         <img 
-                            src={`http://localhost:5000${currentAvatar}`} 
+                            src={`${SERVER_URL}${currentAvatar}`} 
                             alt="Avatar" 
                             className="w-full h-full object-cover"
                         />

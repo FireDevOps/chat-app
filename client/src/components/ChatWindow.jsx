@@ -2,6 +2,7 @@ import Avatar from './Avatar';
 import { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
 import api from '../utils/api';
+import { SERVER_URL } from '../utils/config';
 
 const ChatWindow = ({ conversation, currentUserId, onLeaveGroup }) => {
     const [messages, setMessages] = useState([]);
@@ -305,17 +306,17 @@ const ChatWindow = ({ conversation, currentUserId, onLeaveGroup }) => {
                                     {/* Image display */}
                                         {message.fileUrl && message.fileType === 'image' && (
                                             <img
-                                                src={`http://localhost:5000${message.fileUrl}`}
+                                                src={`${SERVER_URL}${message.fileUrl}`}
                                                 alt={message.fileName}
                                                 className="max-w-full rounded-lg mb-2 cursor-pointer"
-                                                onClick={() => window.open(`http://localhost:5000${message.fileUrl}`, '_blank')}
+                                                onClick={() => window.open(`${SERVER_URL}${message.fileUrl}`, '_blank')}
                                             />
                                         )}
 
                                         {/* Document/file display */}
                                         {message.fileUrl && message.fileType === 'document' && (
                                             <a
-                                                href={`http://localhost:5000${message.fileUrl}`}
+                                                href={`${SERVER_URL}${message.fileUrl}`}
                                                 download={message.fileName}
                                                 className={`flex items-center gap-2 p-2 rounded mb-2 ${
                                                     isMe ? 'bg-blue-600' : 'bg-gray-100 dark:bg-gray-600'

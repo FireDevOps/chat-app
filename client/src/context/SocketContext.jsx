@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { SERVER_URL } from '../utils/config';
 
 const SocketContext = createContext();
 
@@ -12,7 +13,7 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         if (user) { // Only connect if logged in
-            const newSocket = io('http://localhost:5000'); // Connect to server
+            const newSocket = io(SERVER_URL); // Connect to server
 
             newSocket.on('connect', () => {
                 console.log('Connected to socket server');
